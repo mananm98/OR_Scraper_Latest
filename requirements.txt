@@ -1,0 +1,19 @@
+# Web Scraping
+beautifulsoup4==4.12.3
+requests==2.31.0
+selenium==4.16.0
+lxml==5.1.0
+
+# AI/ML APIs
+openai==1.10.0
+exa-py==1.0.8
+
+# Configuration & Environment
+python-dotenv==1.0.0
+PyYAML==6.0.1
+
+# Email
+secure-smtplib==0.1.1
+
+# Utilities
+pandas==2.1.4

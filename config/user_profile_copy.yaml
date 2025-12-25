@@ -1,0 +1,23 @@
+# Basic Information
+name: "Name"
+email: "email.com"
+affiliation: "affiliation"
+
+# Categorized Expertise (Allows the AI to match specific tracks)
+expertise:
+  - domain: "Generative AI & LLMs"
+    focus: "RLHF, Alignment, and Agentic Systems"
+  - domain: "Computer Vision"
+    focus: "Remote sensing, Medical imaging, and Robustness"
+  - domain: "AI Safety/Trust"
+    focus: "Explainable AI and Anomaly Detection"
+
+# Evidence (Key Publications summarized by impact, not just titles)
+publications:
+  - "Surveyed 100+ RLHF methods for multimodal and low-latency alignment."
+  - "Developed Efficient-CovidNet for optimized medical image detection."
+  - "Researched architectural trade-offs for Small Language Models in Agentic systems."
+  - "Engineered explainable AI agents for IoT infrastructure security."
+
+# Career Stage/Identity
+identity: "Researcher with 7 publications focused on the intersection of LLM alignment and vision-language robustness."

@@ -1,0 +1,27 @@
+# Application Configuration
+
+# SMTP Email Configuration
+smtp:
+  host: smtp.gmail.com
+  port: 587
+  use_tls: true
+
+# Output CSV Files
+output:
+  conferences_csv: conferences.csv
+  venue_research_csv: venue_research.csv
+  emails_csv: emails.csv
+
+# Scraping Configuration
+scraping:
+  base_url: https://openreview.net/
+  timeout: 30
+  retry_attempts: 3
+
+# Email Generation
+email_generation:
+  model: gpt-5
+  temperature: 0.7
+  max_tokens: 450
+  timeout: 30
+  max_retries: 3

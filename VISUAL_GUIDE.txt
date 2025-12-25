@@ -1,0 +1,266 @@
+================================================================================
+OPENREVIEW.NET SCRAPING - VISUAL GUIDE
+================================================================================
+
+STEP 1: HOMEPAGE SCRAPING
+================================================================================
+
+  https://openreview.net/
+         |
+         v
+   [HTTP GET Request]
+         |
+         v
+   HTML Response (Server-Side Rendered)
+         |
+         v
+   Parse with BeautifulSoup
+         |
+         v
+   <section>
+     <h1>Open for Submissions</h1>  <-- FIND THIS
+     <ul>
+       <li>
+         <h2>
+           <a href="/group?id=DT4HS.org/2026/...">  <-- EXTRACT THESE LINKS
+             DT4HS 2026 Inaugural Annual Meeting
+           </a>
+         </h2>
+         <span>Due 22 Dec 2025, 23:00 EST</span>
+       </li>
+       <li>
+         <h2>
+           <a href="/group?id=TUplus/2026/Workshop">
+             TUplus 2026 Workshop
+           </a>
+         </h2>
+         <span>Due 23 Dec 2025, 01:59 EST</span>
+       </li>
+       ... (141+ conferences)
+     </ul>
+   </section>
+
+
+STEP 2: CONFERENCE PAGE SCRAPING
+================================================================================
+
+  https://openreview.net/group?id=DT4HS.org/2026/Inaugural_Annual_Meeting
+         |
+         v
+   [HTTP GET Request]
+         |
+         v
+   HTML Response with Embedded JavaScript
+         |
+         v
+   <script>
+     self.__next_f.push([1,"...
+       \"header\":{
+         \"title\":\"Inaugural Annual Meeting...\",
+         \"subtitle\":\"DT4HS\",
+         \"website\":\"https://dt4hs.org/...\",
+         \"contact\":\"yuzhou.chen@ucr.edu\",  <-- EMAIL IS HERE (IN JSON)
+         \"location\":\"1825 Pressler St...\",
+         \"date\":\"Jan 21 2026\"
+       }
+     ..."]);
+   </script>
+         |
+         v
+   Use REGEX to extract email from raw HTML text
+         |
+         v
+   Pattern: r'contact.*?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})'
+         |
+         v
+   Email: yuzhou.chen@ucr.edu
+
+
+EMAIL EXTRACTION FLOW
+================================================================================
+
+   Conference URL
+        |
+        v
+   GET request.text (raw HTML as string)
+        |
+        v
+   Apply regex pattern
+        |
+        v
+   Find all matches
+        |
+        v
+   Filter out system emails:
+     - Remove: *@openreview.net
+     - Remove: noreply@*
+     - Remove: notifications@*
+        |
+        v
+   Return first valid email
+
+
+COMPLETE SCRAPING FLOW
+================================================================================
+
+   START
+     |
+     v
+   Fetch homepage (https://openreview.net/)
+     |
+     v
+   Find <section> with "Open for Submissions"
+     |
+     v
+   Extract all <a> links with /group?id=
+     |
+     v
+   For each conference link:
+     |
+     +---> Sleep 1-2 seconds (rate limiting)
+     |
+     +---> Fetch conference page
+     |
+     +---> Extract email using regex
+     |
+     +---> Store: {name, url, email}
+     |
+     v
+   Save all results to CSV/JSON
+     |
+     v
+   END
+
+
+TOOLS NEEDED
+================================================================================
+
+  +-----------------+     +-----------------+     +---------+
+  |    requests     | --> | BeautifulSoup4  | --> |   re    |
+  | (HTTP requests) |     | (HTML parsing)  |     | (regex) |
+  +-----------------+     +-----------------+     +---------+
+           |                       |                    |
+           v                       v                    v
+   Get HTML from web       Parse HTML tree     Extract emails
+   Handle errors           Find elements        Pattern matching
+
+
+TOOLS NOT NEEDED
+================================================================================
+
+   X Selenium (no browser automation needed)
+   X Playwright (no JavaScript execution needed)
+   X Scrapy (overkill for this task)
+
+
+CODE STRUCTURE
+================================================================================
+
+   openreview_scraper.py
+        |
+        +-- get_homepage()
+        |     Returns: HTML content
+        |
+        +-- extract_conference_links(html)
+        |     Returns: List[{name, url}]
+        |
+        +-- extract_contact_email(conference_url)
+        |     Returns: email (str) or None
+        |
+        +-- scrape_all()
+        |     Returns: List[{name, url, email}]
+        |
+        +-- save_to_csv(data, filename)
+              Returns: None
+
+
+REGEX PATTERNS EXPLAINED
+================================================================================
+
+  Pattern: r'contact.*?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})'
+
+  Breaking it down:
+    contact           = Literal text "contact"
+    .*?               = Any characters (non-greedy)
+    (                 = Start capture group
+      [a-zA-Z0-9._%+-]+   = Email username part
+      @                    = @ symbol
+      [a-zA-Z0-9.-]+       = Domain name
+      \.                   = Literal dot
+      [a-zA-Z]{2,}         = TLD (com, edu, org, etc.)
+    )                 = End capture group
+
+  Example matches:
+    "contact":"yuzhou.chen@ucr.edu"  --> yuzhou.chen@ucr.edu
+    "contact": "bergul@mit.edu"      --> bergul@mit.edu
+    contact: eaclsrw@gmail.com       --> eaclsrw@gmail.com
+
+
+DATA FLOW DIAGRAM
+================================================================================
+
+  Input: https://openreview.net/
+    |
+    v
+  [Homepage Parser]
+    |
+    v
+  Conference URLs (List)
+    |
+    +----> URL 1 --> [Email Extractor] --> email1@example.edu
+    |
+    +----> URL 2 --> [Email Extractor] --> email2@mit.edu
+    |
+    +----> URL 3 --> [Email Extractor] --> email3@gmail.com
+    |
+    v
+  Results: [{conf1, url1, email1}, {conf2, url2, email2}, ...]
+    |
+    v
+  Output: CSV file
+
+
+TESTING CHECKLIST
+================================================================================
+
+  [✓] Homepage loads successfully
+  [✓] Can find "Open for Submissions" section
+  [✓] Can extract conference links (141+ found)
+  [✓] Can fetch individual conference pages
+  [✓] Can extract emails from embedded JSON
+  [✓] Email regex pattern works
+  [✓] System emails are filtered out
+  [✓] Rate limiting implemented
+  [✓] Error handling for network issues
+
+
+SAMPLE OUTPUT
+================================================================================
+
+  Conference: DT4HS 2026 Inaugural Annual Meeting
+  URL: https://openreview.net/group?id=DT4HS.org/2026/Inaugural_Annual_Meeting
+  Email: yuzhou.chen@ucr.edu
+
+  Conference: TUplus 2026 Workshop
+  URL: https://openreview.net/group?id=TUplus/2026/Workshop
+  Email: bergul@mit.edu
+
+  Conference: EACL 2026 SRW
+  URL: https://openreview.net/group?id=eacl.org/EACL/2026/SRW
+  Email: eaclsrw@gmail.com
+
+
+SUCCESS METRICS
+================================================================================
+
+  Total conferences: 141+
+  Email extraction rate: ~100%
+  Average request time: 1-2 seconds per page
+  Total scraping time: ~5-10 minutes (with 1s delays)
+  Selenium required: NO
+  JavaScript rendering required: NO
+
+
+================================================================================
+END OF VISUAL GUIDE
+================================================================================
