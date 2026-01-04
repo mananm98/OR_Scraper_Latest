@@ -38,6 +38,23 @@ def phase1_scrape_conferences(config):
         fieldnames=['name', 'url', 'email']
     )
 
+    # Save conferences with no valid email to a separate CSV for manual review
+    missing_filename = config['output'].get('missing_emails_csv', 'missing_emails.csv')
+    missing_confs = [
+        { 'name': c['name'], 'url': c['url'], 'email': c.get('email', '') }
+        for c in conferences
+        if not c.get('email') or c.get('email') == 'Not found'
+    ]
+    if missing_confs:
+        save_to_csv(
+            missing_confs,
+            missing_filename,
+            fieldnames=['name', 'url', 'email']
+        )
+        print(f"✓ Saved {len(missing_confs)} conferences with missing emails to {missing_filename}")
+    else:
+        print("✓ No conferences with missing emails found")
+
     print(f"✓ Scraped {len(conferences)} conferences")
     print(f"✓ Saved to {config['output']['conferences_csv']}")
     return conferences
