@@ -1,7 +1,7 @@
 # Basic Information
-name: "Name"
-email: "email.com"
-affiliation: "affiliation"
+name: "Raghav Sharma"
+email: "sharma.rag@northeastern.edu"
+affiliation: "Workday Inc."
 
 # Categorized Expertise (Allows the AI to match specific tracks)
 expertise:

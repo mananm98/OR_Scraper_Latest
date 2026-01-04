@@ -62,6 +62,7 @@ python main.py
 - `conferences.csv` - Scraped conferences with emails
 - `venue_research.csv` - Conference topics and highlights
 - `emails.csv` - Generated personalized emails
+ - `missing_emails.csv` - Conferences where the scraper couldn't find a valid contact email (for manual review)
 
 **Test individual phases:**
 ```bash
@@ -78,6 +79,39 @@ python test_phase4_integration.py # Test Phase 4 (integration with CSV)
 - Fetches from OpenReview.net "Open for Submissions"
 - Extracts conference name, URL, and contact email
 - Saves to `conferences.csv`
+ - If no valid email is found for a conference, those rows are saved to `missing_emails.csv` for manual inspection and correction
+
+### Resuming after manual email fixes
+
+If the scraper couldn't find emails for some conferences, the project saves them to `missing_emails.csv` so you can manually fill in missing addresses. After you've edited `missing_emails.csv` with corrected emails (columns: `name,url,email`), run the helper script `run_remaining.py` to merge your fixes back into `conferences.csv` and continue with Phases 2–4.
+
+Steps:
+
+1. Open and edit `missing_emails.csv` in a spreadsheet editor or text editor and add any missing email addresses. Keep the CSV columns: `name,url,email`.
+
+2. (Optional) Backup your conferences CSV:
+
+```bash
+cp conferences.csv conferences.backup.csv
+```
+
+3. Merge fixes and run remaining phases (dry-run for sending):
+
+```bash
+python run_remaining.py
+```
+
+4. If you reviewed the generated emails and want to actually send them (use with caution):
+
+```bash
+python run_remaining.py --send
+```
+
+Notes:
+- `run_remaining.py` matches fixes to conferences by `url` first and then by `name` (case-insensitive). It overwrites `conferences.csv` with merged emails by default; provide `--conferences` to use a different path.
+- You can override the missing CSV path with `--missing path/to/missing_emails.csv`.
+- Phase 2 (research) requires `EXA_API_KEY` in your environment; Phase 3 requires `OPENAI_API_KEY`.
+- Phase 4 defaults to a dry-run to prevent accidental email sends.
 
 ### Phase 2: Research Venues
 - Uses Exa.ai to find relevant information about each conference
