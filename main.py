@@ -139,10 +139,13 @@ def phase3_generate_emails(config, user_profile, venue_research):
     return emails
 
 
-def phase4_send_emails(config, user_profile, emails):
+def phase4_send_emails(config, user_profile, emails, dry_run=False):
     """Phase 4: Send emails via SMTP."""
     print("\n" + "=" * 60)
-    print("PHASE 4: Sending Emails")
+    if dry_run:
+        print("PHASE 4: Sending Emails (DRY RUN MODE)")
+    else:
+        print("PHASE 4: Sending Emails")
     print("=" * 60)
 
     smtp_config = {
@@ -153,11 +156,15 @@ def phase4_send_emails(config, user_profile, emails):
         'password': os.getenv('EMAIL_PASSWORD')
     }
 
-    sender = EmailSender(smtp_config)
+    sender = EmailSender(smtp_config, dry_run=dry_run)
     from_email = user_profile['email']
 
     sent_count = 0
     for email in emails:
+        # Skip emails with no matching interests
+        if email['body'] == 'No match - interests do not align':
+            continue
+
         success = sender.send_email(
             email['to_email'],
             email['subject'],
@@ -167,7 +174,10 @@ def phase4_send_emails(config, user_profile, emails):
         if success:
             sent_count += 1
 
-    print(f"✓ Sent {sent_count}/{len(emails)} emails successfully")
+    if dry_run:
+        print(f"\n✓ [DRY RUN] Simulated {sent_count}/{len(emails)} emails")
+    else:
+        print(f"\n✓ Sent {sent_count}/{len(emails)} emails successfully")
 
 
 def main():
@@ -187,9 +197,11 @@ def main():
     emails = phase3_generate_emails(config, user_profile, venue_research)
 
     # Phase 4: Send emails
-    response = input("\n⚠️  Ready to send emails? (yes/no): ")
-    if response.lower() == 'yes':
-        phase4_send_emails(config, user_profile, emails)
+    response = input("\n⚠️  Ready to send emails? (yes/dry-run/no): ").lower().strip()
+    if response == 'yes':
+        phase4_send_emails(config, user_profile, emails, dry_run=False)
+    elif response in ['dry-run', 'dry_run', 'dryrun']:
+        phase4_send_emails(config, user_profile, emails, dry_run=True)
     else:
         print("✓ Emails not sent. Review emails.csv and run phase 4 manually.")
 

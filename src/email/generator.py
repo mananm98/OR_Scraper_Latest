@@ -148,13 +148,22 @@ Email Body:"""
 
         for attempt in range(self.max_retries):
             try:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    temperature=self.temperature,
-                    max_tokens=self.max_tokens,
-                    timeout=self.timeout
-                )
+                # Use max_completion_tokens for newer models (gpt-4o, gpt-4o-mini, etc.)
+                # Fall back to max_tokens for older models
+                completion_params = {
+                    'model': self.model,
+                    'messages': messages,
+                    'temperature': self.temperature,
+                    'timeout': self.timeout
+                }
+
+                # Newer models use max_completion_tokens
+                if 'gpt-4o' in self.model or 'gpt-5' in self.model or 'o1' in self.model:
+                    completion_params['max_completion_tokens'] = self.max_tokens
+                else:
+                    completion_params['max_tokens'] = self.max_tokens
+
+                response = self.client.chat.completions.create(**completion_params)
 
                 email_content = response.choices[0].message.content
                 return email_content.strip()

@@ -68,6 +68,8 @@ python main.py
 python test_scraper.py          # Test Phase 1 (scraping)
 python test_researcher.py       # Test Phase 2 (Exa.ai research)
 python test_email_generator.py  # Test Phase 3 (email generation)
+python test_sender_dry_run.py   # Test Phase 4 (dry-run mode)
+python test_phase4_integration.py # Test Phase 4 (integration with CSV)
 ```
 
 ## How It Works
@@ -89,9 +91,17 @@ python test_email_generator.py  # Test Phase 3 (email generation)
 - Saves to `emails.csv`
 
 ### Phase 4: Send Emails (Optional)
-- SMTP integration for sending emails
+- SMTP integration for sending emails via Gmail
 - Requires Gmail app password or other SMTP credentials
-- Manual confirmation before sending
+- Manual confirmation with three options:
+  - `yes` - Send emails for real
+  - `dry-run` - Simulate sending without transmitting (safe testing)
+  - `no` - Skip sending
+- Features:
+  - Rate limiting (1.5s delay between emails)
+  - Detailed logging (success/failure with error details)
+  - Input validation (email format, required fields)
+  - Automatic skipping of "no match" emails
 
 ## Configuration
 
